@@ -4,10 +4,13 @@ import json
 import os
 
 class DataPipeline:
-    def __init__(self, input_path, output_path, save_table=True, window_size=3, step_size=2):
+    def __init__(self, input_path: str, output_path: str, save_table: bool = True, window_size: int = 3, step_size: int = 2):
         """
-        :param window_size: Số lượng câu trong 1 task (mặc định 3).
-        :param step_size: Bước nhảy (mặc định 2).
+        input_path: Đường dẫn file CSV đầu vào.
+        output_path: Đường dẫn file JSON đầu ra.
+        save_table: Có lưu bảng CSV các cửa sổ đã tách không (mặc định True).
+        window_size: Số lượng câu trong 1 task (mặc định 3).
+        step_size: Bước nhảy (mặc định 2).
         """
         self.input_path = input_path
         self.output_path = output_path
@@ -15,7 +18,6 @@ class DataPipeline:
         self.window_size = window_size
         self.step_size = step_size
         
-        # Thư mục PREPROCESSED mới
         self.prep_dir = "data/preprocessed/"
         os.makedirs(self.prep_dir, exist_ok=True)
 
@@ -34,6 +36,7 @@ class DataPipeline:
             return ""
         text = text.replace('\n', ' ').replace('\r', ' ')
 
+        #loại bỏ 1 vài credit phổ biến nhưng không hết hẳn
         upper = "A-ZÀÁÂÃÈÉÊÌÍÒÓÔÕÙÚĂĐĨŨƠƯẠẢẤẦẨẪẬẮẰẲẴẶẸẺẼỀỂỄỆỈỊỌỎỐỒỔỖỘỚỜỞỠỢỤỦỨỪỬỮỰỲỴÝỶỸ"
         lower = "a-zàáâãèéêìíòóôõùúăđĩũơưạảấầẩẫậắằẳẵặẹẻẽềểễệỉịọỏốồổỗộớờởỡợụủứừửữựỳỵýỷỹ"
         pattern_credit = rf'(Video|Ảnh)\s*:\s*((?:[{upper}][{lower}]*\s+){{1,4}})(?=[{upper}])'
@@ -77,9 +80,6 @@ class DataPipeline:
 
         df['full_text'] = df['clean_title'] + ". " + df['clean_content']
 
-        # ===================================================
-        # 1) Lưu CLEANED CSV (Toàn văn bài báo - Gốc đã sạch)
-        # ===================================================
         cleaned_path = os.path.join(
             self.prep_dir,
             os.path.basename(self.input_path).replace(".csv", "_cleaned.csv")
@@ -96,9 +96,6 @@ class DataPipeline:
             df_save.to_csv(cleaned_path, index=False, encoding='utf-8')
             print(f"-> Đã lưu CLEANED tại: {cleaned_path}")
 
-        # ===================================================
-        # 2) Tách câu & Tạo Window (Chunks)
-        # ===================================================
         window_rows = [] # Dùng để lưu file CSV bảng (Mirror của JSON)
         tasks = []      # Dùng để lưu file JSON Label Studio
 
@@ -107,9 +104,7 @@ class DataPipeline:
             # Tách thành danh sách câu đơn lẻ trước
             sentences = self.split_sentences(row['full_text'])
 
-            # --- Logic Sliding Window ---
-            # Duyệt danh sách câu theo bước nhảy (step_size)
-            # range(start, stop, step)
+            # bắt đầu trượt 
             window_idx = 0
             for i in range(0, len(sentences), self.step_size):
                 # Lấy ra cửa sổ gồm 'window_size' câu
@@ -118,13 +113,11 @@ class DataPipeline:
                 if not chunk_sents: 
                     continue
 
-                # Nối các câu trong cửa sổ lại thành 1 đoạn văn
                 chunk_text = " ".join(chunk_sents)
                 
-                # Tạo ID cho chunk: ArticleID_WindowIndex
                 chunk_id = f"{article_id}_w{window_idx}"
 
-                # A. Thêm vào JSON List
+                # Thêm vào JSON List
                 tasks.append({
                     "data": {
                         "text": chunk_text,
@@ -133,17 +126,13 @@ class DataPipeline:
                     }
                 })
 
-                # B. Thêm vào CSV Table List (Đồng bộ với JSON)
+                # Thêm vào CSV Table List (Đồng bộ với JSON)
                 window_rows.append({
                     "id": chunk_id,
                     "text": chunk_text,
                     "article_id": article_id
                 })
                 window_idx += 1
-
-        # ===================================================
-        # 3) Lưu CSV Split (Bảng Windows) và JSON
-        # ===================================================
         
         # Lưu file CSV dạng bảng của các Windows (để kiểm tra dễ hơn đọc JSON)
         split_path = os.path.join(
@@ -162,8 +151,7 @@ class DataPipeline:
         print(f"Tổng số Task (Windows) tạo ra: {len(tasks)}")
         print(f"File JSON Import: {self.output_path}")
 
-
-# --- RUN ---
+ 
 if __name__ == "__main__":
     pipeline = DataPipeline(
         input_path='data/raw/data_raw_400news.csv', 
