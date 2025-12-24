@@ -26,16 +26,18 @@ def clean_text_basic(text):
     
     text = str(text).strip()
     
-    # --- THÊM DÒNG NÀY ---
     # Chuyển về dạng dựng sẵn (NFC) để đồng bộ với từ điển của PhoBERT
     text = unicodedata.normalize('NFC', text) 
-    # ---------------------
 
-    # Thay thế từ viết tắt
+    # Thay thế từ viết tắt (đã định nghĩa trong ABBREVIATIONS)
     for abbr, replacement in ABBREVIATIONS.items():
         text = text.replace(abbr, replacement)
+    
+    # Regex tìm các ký tự này NẾU theo sau là khoảng trắng (\s) hoặc kết thúc dòng ($).
+    text = re.sub(r'([.,!?;:])(?=\s|$)', r' \1', text)
+    # --------------------
         
-    text = re.sub(r'\s+', ' ', text) # Gộp khoảng trắng
+    text = re.sub(r'\s+', ' ', text) # Gộp khoảng trắng thừa
     text = re.sub(r'\[.*?\]', '', text) # Xóa text trong ngoặc vuông
     
     return text.strip()

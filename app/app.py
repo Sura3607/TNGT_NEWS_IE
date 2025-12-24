@@ -19,7 +19,7 @@ except ImportError as e:
     st.stop()
 
 # CẤU HÌNH TRANG 
-st.set_page_config(page_title="TNGT IE Demo", layout="wide", page_icon="⚡")
+st.set_page_config(page_title="TNGT IE", layout="wide", page_icon="⚡")
 
 NER_MODELS_LIST = ["PHOBERT", "CRF", "SVM", "LOGREG"]
 RE_MODELS_LIST = ["PHOBERT", "SVM", "RF", "LOGREG"]
@@ -88,9 +88,7 @@ else:
 st.title("Hệ thống Trích xuất Thông tin TNGT")
 st.caption("Demo load toàn bộ model tại thời điểm khởi động (Pre-load All)")
 
-default_text = """Vào khoảng 15h30 chiều ngày 20/11, một vụ tai nạn giao thông nghiêm trọng đã xảy ra tại ngã tư Hàng Xanh, TP.HCM. 
-Xe tải mang BKS 29C-123.45 do tài xế Nguyễn Văn A điều khiển đã va chạm mạnh với xe khách. 
-Nạn nhân bị thương nặng được đưa đi cấp cứu."""
+default_text = """Vào khoảng 15h30 chiều ngày 20/11, một vụ tai nạn giao thông nghiêm trọng đã xảy ra tại ngã tư Hàng Xanh, TP.HCM do tài xế ngủ gục . Xe tải mang BKS 29C-123.45 do tài xế Nguyễn Văn A điều khiển đã va chạm mạnh với xe máy do tài xế ngủ gục . Ông B bị thương nặng được đưa đi cấp cứu."""
 
 col_input, col_action = st.columns([3, 1])
 with col_input:

@@ -58,6 +58,9 @@ cd TNGT_NEWS_IE
 # Cài đặt các thư viện cần thiết
 pip install -r requirements.txt
 
+# Tạo và kích hoạt môi trường ảo (Windows)
+venv\Scripts\activate
+
 # Chạy ứng dụng web
 streamlit run app/app.py
 
